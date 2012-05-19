@@ -20,17 +20,17 @@ Clone or download as zip from github, extract to directory.  Set the main script
   * logging of all events to log file and optionally syslog.
   * debug mode, copies all mongodump output to debug file to determine failures.
   * calculates total run time and dump size to understand data growth impact.
-* e-mail notifications
+* E-mail notifications
   *	get updated on successful or failed backup attempts.
   * includes run time and dump size, on-hand archives and target disk utilization.
-* write locking
+* Write locking
   * option to enable write locking on replicaSet slaves.
   * locks writes, performs backup, unlock writes (slave nodes only).
   * helps ensure a consistent state (also consider: --oplog option)
-* configurability
-  * changeable backup path
-  * ability to set mongodump runtime options.
-  * many others in configuration file.
+* Configurability
+    * changeable backup path
+    * ability to set mongodump runtime options.
+    * many others in configuration file.
 
 
 ###### license
