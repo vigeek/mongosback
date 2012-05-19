@@ -6,12 +6,12 @@ Clone or download as zip from github, extract to directory.  Set the main script
 
 ###### Functionality
 * Archiving
-  *	keep several backups on-hand, delete after X days.
-* Performance throttling
-  *	mongodb can be quite resource intensive (IO in particular).
-  * three performance throttles (low, normal, high).
-  * reduces IO and CPU utilization, useful for backups on master mongo server.
-* Compression
+  *	keep several backups on-hand, delete after X days.  
+* Performance throttling  
+  *	mongodb can be quite resource intensive (IO in particular).  
+  * three performance throttles (low, normal, high).  
+  * reduces IO and CPU utilization, useful for backups on master mongo server.  
+* Compression  
   *	perform gzip compression on backups, reducing space utilization.
   * tunable compression levels (low, medium, high).
 * Exporting
