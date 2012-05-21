@@ -13,7 +13,7 @@ Clone or download as zip from github, extract to directory.  Set the main script
   * reduces IO and CPU utilization, useful for backups on master mongo server.  
 * Compression  
   *	perform gzip compression on backups, reducing space utilization.
-  * tunable compression levels (low, medium, high).
+  * tunable compression levels (fast, normal, best).
 * Exporting
   * automatically transfer latest backup to remote FTP or using SCP.
 * Logging
@@ -31,6 +31,9 @@ Clone or download as zip from github, extract to directory.  Set the main script
     * changeable backup path
     * ability to set mongodump runtime options.
     * many others in configuration file.
+* General
+    * creates pid file to prevent multiple startups.
+    * traps errors caught, logs and optionally e-mails.
 
 
 ###### license
