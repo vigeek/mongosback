@@ -6,7 +6,6 @@ Clone or download as zip from github, extract to directory.  Set the main script
 
 ###### Compatability
 Tested:  Debian, CentOS, RHEL
-Also:  Should function on most POSIX systems (BSD/Linux/OS X) with minimal modifications.
 
 ###### Functionality
 * Archiving
