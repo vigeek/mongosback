@@ -1,8 +1,12 @@
 ## mongosback
-**mongosback** is a mongodb backup script created to be easy to use yet flexible, currently a commit or two away for readiness.
+**mongosback** is a mongodb backup script created to be easy to use yet flexible, used in production at Wildbit.com
 
 #### Installation
 Clone or download as zip from github, extract to directory.  Set the main script as executable (chmod u+x mongosback.sh).  Edit mongosback.conf with desired settings and execute from cron.
+
+###### Compatability
+Tested:  Debian, CentOS, RHEL
+Also:  Should function on most POSIX systems (BSD/Linux/OS X) with minimal modifications.
 
 ###### Functionality
 * Archiving
