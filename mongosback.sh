@@ -7,8 +7,8 @@
 if [ -f "mongosback.conf" ] ; then
   . ./mongosback.conf
 else
-	logger "mongosback unable to read the configuration file, exiting prematurely"
-	exit 1
+  logger "mongosback unable to read the configuration file, exiting prematurely"
+  exit 1
 fi
 
 if [ -f "/var/run/mongosback.pid" ] ; then
@@ -19,10 +19,10 @@ if [ -f "/var/run/mongosback.pid" ] ; then
 fi
 
 function log {
-	echo -e "$(date) $1" >> $LOG_FILE
-    if [ $SYSLOG -eq 1 ] ; then
-      logger "mongosback - $1"
-    fi
+  echo -e "$(date) $1" >> $LOG_FILE
+  if [ $SYSLOG -eq 1 ] ; then
+    logger "mongosback - $1"
+  fi
 }
 
 function error_trap {
