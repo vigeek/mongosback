@@ -73,11 +73,11 @@ function prepare_job {
   fi
 
   if [ $PERFORMANCE_THROTTLING == "low" ] ; then
-    PERFORMANCE_THROTTLING="ionice -c2 -n6 nice -n 5"
+    PERFORMANCE_THROTTLING="ionice -c2 -n7 nice -n 5"
   elif [ $PERFORMANCE_THROTTLING == "normal" ] ; then
     PERFORMANCE_THROTTLING="nice -n 0"
   elif [ $PERFORMANCE_THROTTLING == "high" ] ; then
-    PERFORMANCE_THROTTLING="ionice -c2 -n6 nice -n -5"
+    PERFORMANCE_THROTTLING="ionice -c2 -n1 nice -n -5"
   else
     PERFORMANCE_THROTTLING="nice -n 0"
   fi
