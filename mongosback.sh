@@ -5,8 +5,10 @@
 # mongosback - Russ Thompson (russ @ linux.com)               
 
 if [ -f "mongosback.conf" ] ; then
-	. ./mongosback.conf
-   if [ -z "$DO_BACKUP" ] ; then DO_BACKUP="full" ; fi
+  . ./mongosback.conf
+   if [ -z "$DO_BACKUP" ] ; then 
+      DO_BACKUP="full" 
+   fi
    COMPRESSED_NAME="$(echo $DO_BACKUP)_$(date +%m_%d_%Y)_dump.tar"
 else
 	logger "mongosback unable to read the configuration file, exiting prematurely"
@@ -62,6 +64,14 @@ function prepare_job {
 
   if [ -z "$MONGO_DUMP" ] ; then
     MONGO_DUMP=`which mongodump`
+  fi
+
+  if [ -n "$MONGO_USER" ] ; then
+    MONGO_DUMP_OPTIONS="$(echo $MONGO_DUMP_OPTIONS) -u $MONGO_USER"
+  fi
+
+  if [ -n "$MONGO_PASS" ] ; then
+    MONGO_DUMP_OPTIONS="$(echo $MONGO_DUMP_OPTIONS) -p $MONGO_PASS"
   fi
 }
 
@@ -148,7 +158,7 @@ EOF
 function scp_export {
   log "performing SCP export functions..."
   if [ $SCP_EXPORT == "1" ] ; then
-    scp $SCP_USER@$SCP_HOST:$SCP_PATH
+    scp $COMPRESSED_NAME $SCP_USER@$SCP_HOST:$SCP_PATH
   fi
 }
 
