@@ -6,10 +6,6 @@
 
 if [ -f "mongosback.conf" ] ; then
   . ./mongosback.conf
-   if [ -z "$DO_BACKUP" ] ; then 
-      DO_BACKUP="full" 
-   fi
-   COMPRESSED_NAME="$(echo $DO_BACKUP)_$(date +%m_%d_%Y)_dump.tar"
 else
 	logger "mongosback unable to read the configuration file, exiting prematurely"
 	exit 1
@@ -34,45 +30,6 @@ function error_trap {
   echo -e "$(date) mongosback - error trap called - $ERR_RETURN" | tee -a $LOG_FILE
   if [ -f "$PID_FILE" ] ; then rm -f $PID_FILE ; fi
   exit 1
-}
-
-function prepare_job {
-  log "mongosback - ALIVE - preparing mongo backup job..."
-	if [ $COMPRESSION_LEVEL == "fast" ] ; then
-		COMPRESSION_LEVEL="-1"
-	elif [ $COMPRESSION_LEVEL == "normal" ] ; then
-		COMPRESSION_LEVEL="-5"
-	elif [ $COMPRESSION_LEVEL == "best" ] ; then
-		COMPRESSION_LEVEL="-9"
-	else
-		COMPRESSION_LEVEL="-5"
-	fi
-
-	if [ $PERFORMANCE_THROTTLING == "low" ] ; then
-		PERFORMANCE_THROTTLING="ionice -c2 -n6 nice -n 5"
-	elif [ $PERFORMANCE_THROTTLING == "normal" ] ; then
-		PERFORMANCE_THROTTLING="nice -n 0"
-	elif [ $PERFORMANCE_THROTTLING == "high" ] ; then
-		PERFORMANCE_THROTTLING="ionice -c2 -n6 nice -n -5"
-	else
-		PERFORMANCE_THROTTLING="nice -n 0"
-	fi
-
-	if [ $COMPRESS -eq "0" ] ; then
-		COMPRESSED_NAME=`$(echo $COMPRESSED_NAME | sed 's/.gz//g')`
-	fi
-
-  if [ -z "$MONGO_DUMP" ] ; then
-    MONGO_DUMP=`which mongodump`
-  fi
-
-  if [ -n "$MONGO_USER" ] ; then
-    MONGO_DUMP_OPTIONS="$(echo $MONGO_DUMP_OPTIONS) -u $MONGO_USER"
-  fi
-
-  if [ -n "$MONGO_PASS" ] ; then
-    MONGO_DUMP_OPTIONS="$(echo $MONGO_DUMP_OPTIONS) -p $MONGO_PASS"
-  fi
 }
 
 function do_compress {
@@ -101,6 +58,50 @@ function do_archive {
   else
     find $BACKUP_PATH -name "dump.tar" -exec rm {} \;
   fi
+}
+
+function prepare_job {
+  log "mongosback - ALIVE - preparing mongo backup job..."
+  if [ $COMPRESSION_LEVEL == "fast" ] ; then
+    COMPRESSION_LEVEL="-1"
+  elif [ $COMPRESSION_LEVEL == "normal" ] ; then
+    COMPRESSION_LEVEL="-5"
+  elif [ $COMPRESSION_LEVEL == "best" ] ; then
+    COMPRESSION_LEVEL="-9"
+  else
+    COMPRESSION_LEVEL="-5"
+  fi
+
+  if [ $PERFORMANCE_THROTTLING == "low" ] ; then
+    PERFORMANCE_THROTTLING="ionice -c2 -n6 nice -n 5"
+  elif [ $PERFORMANCE_THROTTLING == "normal" ] ; then
+    PERFORMANCE_THROTTLING="nice -n 0"
+  elif [ $PERFORMANCE_THROTTLING == "high" ] ; then
+    PERFORMANCE_THROTTLING="ionice -c2 -n6 nice -n -5"
+  else
+    PERFORMANCE_THROTTLING="nice -n 0"
+  fi
+
+  if [ $COMPRESS -eq "0" ] ; then
+    COMPRESSED_NAME=`$(echo $COMPRESSED_NAME | sed 's/.gz//g')`
+  fi
+
+  if [ -z "$MONGO_DUMP" ] ; then
+    MONGO_DUMP=`which mongodump`
+  fi
+
+  if [ -n "$MONGO_USER" ] ; then
+    MONGO_DUMP_OPTIONS="$(echo $MONGO_DUMP_OPTIONS) -u $MONGO_USER"
+  fi
+
+  if [ -n "$MONGO_PASS" ] ; then
+    MONGO_DUMP_OPTIONS="$(echo $MONGO_DUMP_OPTIONS) -p $MONGO_PASS"
+  fi
+
+  if [ -z "$DO_BACKUP" ] ; then 
+    DO_BACKUP="full" 
+  fi
+  COMPRESSED_NAME="$(echo $DO_BACKUP)_$(date +%m_%d_%Y)_dump.tar"
 }
 
 function perform_backup {
