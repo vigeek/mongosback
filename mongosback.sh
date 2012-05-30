@@ -26,8 +26,10 @@ function log {
 }
 
 function error_trap {
-  logger "mongosback - error trap called - $ERR_RETURN"
-  echo -e "$(date) mongosback - error trap called - $ERR_RETURN" | tee -a $LOG_FILE
+  LINE_RETURN="$1"
+  ERROR_RETURN="$2"
+  logger "mongosback - error trap called - $ERROR_RETURN - line $LINE_RETURN"
+  echo -e "$(date) mongosback - error trap called - $ERROR_RETURN - line $LINE_RETURN" | tee -a $LOG_FILE
   if [ -f "$PID_FILE" ] ; then rm -f $PID_FILE ; fi
   exit 1
 }
@@ -39,7 +41,7 @@ function do_compress {
       $PERFORMANCE_THROTTLING gzip -f $COMPRESSION_LEVEL $COMPRESSED_NAME
       COMPRESSED_NAME="$COMPRESSED_NAME.gz"
     else
-      log "ERROR-> $DO_BACKUP does not exst." ; ERR_RETURN="compression function : $LINENO"
+      log "ERROR-> $DO_BACKUP does not exst."
       error_trap
     fi
   fi
@@ -58,6 +60,10 @@ function do_archive {
   else
     find $BACKUP_PATH -name "dump.tar" -exec rm {} \;
   fi
+}
+
+function select_slave {
+  log "trying to select slave for backup..."
 }
 
 function prepare_job {
@@ -104,10 +110,20 @@ function prepare_job {
   COMPRESSED_NAME="$(echo $DO_BACKUP)_$(date +%m_%d_%Y)_dump.tar"
 }
 
+function raw_backup {
+  log "performing raw backup"
+}
+
 function perform_backup {
 
   if [ $LOCK_WRITES -eq "1" ] ; then
-    echo "db.fsyncLock()" | mongo $MONGO_HOST_PORT
+    if [ -z "$MONGO_USER" || -z "$MONGO_PASS" ] ; then 
+      echo "db.fsyncLock()" | mongo $MONGO_HOST_PORT
+    else
+      if [ -n "$MONGO_USER" ] ; then OPT_ARG="-u $MONGO_USER" ; fi
+      if [ -n "$MONGO_PASS" ] ; then OPT_ARG="$(echo $OPT_ARG) -p $MONGO_PASS" ; fi
+        echo "db.fsyncLock()" | mongo $MONGO_HOST_PORT $OPT_ARG
+    fi
   fi
 
   cd $BACKUP_PATH &> /dev/null
@@ -116,7 +132,7 @@ function perform_backup {
     log "starting mongodump (this will take a while)...." 
     $PERFORMANCE_THROTTLING $MONGO_DUMP -h $MONGO_HOST_PORT $MONGO_DUMP_OPTIONS &> /dev/null ; RETURN=$?
     if [ $RETURN -ne 0 ] ; then
-      log "ERROR -> mongo_dump failed to execute properly: err $?" ; ERR_RETURN="backup function : $LINENO : err $RETURN"
+      log "ERROR -> mongo_dump failed to execute properly: err $?"
       log "mongosback terminating early" 
       error_trap
     fi
@@ -125,7 +141,7 @@ function perform_backup {
     log "starting mongodump (this will take a while)...." 
     $PERFORMANCE_THROTTLING $MONGO_DUMP -h $MONGO_HOST_PORT -d $DO_BACKUP -o $BACKUP_PATH $MONGO_DUMP_OPTIONS &> /dev/null ; RETURN=$?
     if [ $RETURN -ne 0 ] ; then
-      log "ERROR -> mongo_dump failed to execute properly: err $?" ; ERR_RETURN="backup function : $LINENO : err $RETURN"
+      log "ERROR -> mongo_dump failed to execute properly: err $?"
       log "mongosback terminating early" 
       error_trap
     fi
@@ -134,8 +150,18 @@ function perform_backup {
 
   log "mongodump successful, beginning post-dump operations" 
   if [ $LOCK_WRITES -eq "1" ] ; then
-    echo "db.fsyncUnlock()" | mongo $MONGO_HOST_PORT
+    if [ -z "$MONGO_USER" || -z "$MONGO_PASS" ] ; then 
+      echo "db.fsyncUnlock()" | mongo $MONGO_HOST_PORT
+    else
+      if [ -n "$MONGO_USER" ] ; then OPT_ARG="-u $MONGO_USER" ; fi
+      if [ -n "$MONGO_PASS" ] ; then OPT_ARG="$(echo $OPT_ARG) -p $MONGO_PASS" ; fi
+        echo "db.fsyncUnlock()" | mongo $MONGO_HOST_PORT $OPT_ARG
+    fi
   fi
+}
+
+function s3_export {
+  log "performing S3 export function..."
 }
 
 function ftp_export {
@@ -150,7 +176,7 @@ function ftp_export {
       quit
 EOF
       if [ $? -eq "1" ] ; then
-        log "ERROR-> during ftp upload" ; ERR_RETURN="ftp_export function : $LINENO"
+        log "ERROR-> during ftp upload" 
         error_trap
       fi
   fi
@@ -188,7 +214,7 @@ function send_mail {
 echo "--------------------------------------------------------------------------------" >> $LOG_FILE
 PID_FILE="/var/run/mongosback.pid"
 # Define error traps
-trap error_trap ERR SIGHUP SIGINT SIGTERM
+trap 'error_trap ${LINENO} $?' ERR SIGHUP SIGINT SIGTERM
 echo "$$" > $PID_FILE
   START_TIME=$(date +%s)
   prepare_job
