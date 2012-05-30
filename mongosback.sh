@@ -115,17 +115,7 @@ function raw_backup {
 }
 
 function perform_backup {
-
-  if [ $LOCK_WRITES -eq "1" ] ; then
-    if [ -z "$MONGO_USER" || -z "$MONGO_PASS" ] ; then 
-      echo "db.fsyncLock()" | mongo $MONGO_HOST_PORT
-    else
-      if [ -n "$MONGO_USER" ] ; then OPT_ARG="-u $MONGO_USER" ; fi
-      if [ -n "$MONGO_PASS" ] ; then OPT_ARG="$(echo $OPT_ARG) -p $MONGO_PASS" ; fi
-        echo "db.fsyncLock()" | mongo $MONGO_HOST_PORT $OPT_ARG
-    fi
-  fi
-
+  lock_writes
   cd $BACKUP_PATH &> /dev/null
   if [ "$DO_BACKUP" == "full" ] ; then
     cd $BACKUP_PATH
@@ -149,13 +139,40 @@ function perform_backup {
   fi
 
   log "mongodump successful, beginning post-dump operations" 
+  unlock_writes
+  
+}
+
+function lock_writes {
+  
   if [ $LOCK_WRITES -eq "1" ] ; then
     if [ -z "$MONGO_USER" || -z "$MONGO_PASS" ] ; then 
-      echo "db.fsyncUnlock()" | mongo $MONGO_HOST_PORT
+        LOCKER=`mongo --host $MONGO_HOST_PORT --eval "printjson(db.fsyncLock())" | grep "ok" | cut -d":" -f2`
+        if [ "$LOCKER" -ne "1" ] ; then
+          log "error encountered during lock function"
+        fi
     else
       if [ -n "$MONGO_USER" ] ; then OPT_ARG="-u $MONGO_USER" ; fi
       if [ -n "$MONGO_PASS" ] ; then OPT_ARG="$(echo $OPT_ARG) -p $MONGO_PASS" ; fi
-        echo "db.fsyncUnlock()" | mongo $MONGO_HOST_PORT $OPT_ARG
+        echo "db.fsyncLock()" | mongo $MONGO_HOST_PORT $OPT_ARG
+        LOCKER=`mongo --host $MONGO_HOST_PORT $OPT_ARG --eval "printjson(db.fsyncLock())" | grep "ok" | cut -d":" -f2`
+        if [ "$LOCKER" -ne "1" ] ; then
+          log "error encountered during lock function"
+        fi
+    fi
+  fi
+}
+
+function unlock_writes {
+
+  if [ $LOCK_WRITES -eq "1" ] ; then
+    if [ -z "$MONGO_USER" || -z "$MONGO_PASS" ] ; then 
+        UNLOCKER=`mongo --host $MONGO_HOST_PORT --eval "printjson(db.fsyncUnlock())"`
+    else
+      if [ -n "$MONGO_USER" ] ; then OPT_ARG="-u $MONGO_USER" ; fi
+      if [ -n "$MONGO_PASS" ] ; then OPT_ARG="$(echo $OPT_ARG) -p $MONGO_PASS" ; fi
+        echo "db.fsyncLock()" | mongo $MONGO_HOST_PORT $OPT_ARG
+        UNLOCKER=`mongo --host $MONGO_HOST_PORT $OPT_ARG --eval "printjson(db.fsyncUnlock())"`
     fi
   fi
 }
