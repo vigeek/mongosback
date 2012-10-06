@@ -78,8 +78,9 @@ function prepare_job {
   else
     COMPRESSION_LEVEL="-5"
   fi
-
-  if [ $PERFORMANCE_THROTTLING == "low" ] ; then
+  if [[ $PERFORMANCE_THROTTLING == "idle" ]]; then
+    PERFORMANCE_THROTTLING="ionice -c3 nice -n 15"
+  elif [ $PERFORMANCE_THROTTLING == "low" ] ; then
     PERFORMANCE_THROTTLING="ionice -c2 -n7 nice -n 5"
   elif [ $PERFORMANCE_THROTTLING == "normal" ] ; then
     PERFORMANCE_THROTTLING="nice -n 0"
