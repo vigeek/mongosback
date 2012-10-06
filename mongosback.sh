@@ -11,13 +11,6 @@ else
   exit 1
 fi
 
-if [ -f "/var/run/mongosback.pid" ] ; then
-  ERR_RETURN="pid existance : $LINENO"
-  logger "mongosback - exiting prematurely, pid file exists @ /var/run/mongosback.pid" 
-  echo -e "mongosback - exiting prematurely, pid file exists @ /var/run/mongosback.pid" | tee -a $LOG_FILE
-  error_trap
-fi
-
 function log {
   echo -e "$(date) $1" >> $LOG_FILE
   if [ $SYSLOG -eq 1 ] ; then
@@ -27,12 +20,20 @@ function log {
 
 function error_trap {
   LINE_RETURN="$1"
-  ERROR_RETURN="$2"
-  logger "mongosback - error trap called - $ERROR_RETURN - line $LINE_RETURN"
-  echo -e "$(date) mongosback - error trap called - $ERROR_RETURN - line $LINE_RETURN" | tee -a $LOG_FILE
+  FUNC_RETURN="$2"
+  ERROR_RETURN="$3"
+  logger "mongosback - error in function - $FUNC_RETURN - line $LINE_RETURN - error $ERROR_RETURN"
+  echo -e "$(date) mongosback - error trap called - $FUNC_RETURN - line $LINE_RETURN" | tee -a $LOG_FILE
   if [ -f "$PID_FILE" ] ; then rm -f $PID_FILE ; fi
   exit 1
 }
+
+if [ -f "/var/run/mongosback.pid" ] ; then
+  ERR_RETURN="pid existance : $LINENO"
+  logger "mongosback - exiting prematurely, pid file exists @ /var/run/mongosback.pid"
+  echo -e "mongosback - exiting prematurely, pid file exists @ /var/run/mongosback.pid" | tee -a $LOG_FILE
+  error_trap
+fi  
 
 function do_compress {
   if [ $COMPRESS -eq "1" ] ; then
@@ -200,8 +201,8 @@ EOF
 }
 
 function scp_export {
-  log "performing SCP export functions..."
   if [ $SCP_EXPORT == "1" ] ; then
+    log "performing SCP export functions..."
     scp $COMPRESSED_NAME $SCP_USER@$SCP_HOST:$SCP_PATH
   fi
 }
@@ -231,7 +232,7 @@ function send_mail {
 echo "--------------------------------------------------------------------------------" >> $LOG_FILE
 PID_FILE="/var/run/mongosback.pid"
 # Define error traps
-trap 'error_trap ${LINENO} $?' ERR SIGHUP SIGINT SIGTERM
+trap 'error_trap $LINENO $FUNCNAME $?' ERR SIGHUP SIGINT SIGTERM
 echo "$$" > $PID_FILE
   START_TIME=$(date +%s)
   prepare_job
