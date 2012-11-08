@@ -4,26 +4,29 @@
 ################################################   
 # mongosback - Russ Thompson (russ @ linux.com)               
 
+set -o errtrace
+
 if [ -f "mongosback.conf" ] ; then
   . ./mongosback.conf
 else
-  logger "mongosback unable to read the configuration file, exiting prematurely"
+  logger -s "mongosback unable to read the configuration file, exiting prematurely"
   exit 1
 fi
 
 function log {
-  echo -e "$(date) $1" >> $LOG_FILE
+  echo -e "$(date +%D" "%T) $1" >> $LOG_FILE
   if [ $SYSLOG -eq 1 ] ; then
     logger "mongosback - $1"
   fi
 }
 
 function error_trap {
-  LINE_RETURN="$1"
-  FUNC_RETURN="$2"
-  ERROR_RETURN="$3"
+  LINE_RETURN=$1
+  FUNC_RETURN=$2
+  ERROR_RETURN=$3
+  COMMAND_RETURN=$4
   logger "mongosback - error in function - $FUNC_RETURN - line $LINE_RETURN - error $ERROR_RETURN"
-  echo -e "$(date) mongosback - error trap called - $FUNC_RETURN - line $LINE_RETURN" | tee -a $LOG_FILE
+  echo -e "$(date +%D" "%T) ERROR: $FUNC_RETURN - line: $LINE_RETURN - code: $ERROR_RETURN - command: $BASH_COMMAND" | tee -a $LOG_FILE
   if [ -f "$PID_FILE" ] ; then rm -f $PID_FILE ; fi
   exit 1
 }
@@ -242,7 +245,8 @@ function send_mail {
 echo "--------------------------------------------------------------------------------" >> $LOG_FILE
 PID_FILE="/var/run/mongosback.pid"
 # Define error traps
-trap 'error_trap $LINENO $FUNCNAME $?' ERR SIGHUP SIGINT SIGTERM
+trap 'error_trap $LINENO $FUNCNAME $? $BASH_COMMAND'  ERR SIGHUP SIGINT SIGTERM
+
 echo "$$" > $PID_FILE
   START_TIME=$(date +%s)
   if [ $SIMPLE_BACKUP = "0" ] ; then
