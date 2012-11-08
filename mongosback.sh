@@ -245,7 +245,7 @@ function send_mail {
 echo "--------------------------------------------------------------------------------" >> $LOG_FILE
 PID_FILE="/var/run/mongosback.pid"
 # Define error traps
-trap 'error_trap $LINENO $FUNCNAME $? $BASH_COMMAND'  ERR SIGHUP SIGINT SIGTERM
+trap 'error_trap $LINENO $FUNCNAME $? $BASH_COMMAND' ERR SIGHUP SIGINT SIGTERM
 
 echo "$$" > $PID_FILE
   START_TIME=$(date +%s)
