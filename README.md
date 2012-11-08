@@ -18,7 +18,7 @@ Tested:  Debian, CentOS, RHEL
   *	perform gzip compression on backups, reducing space utilization.
   * tunable compression levels (fast, normal, best).
 * Simple backup
-  *     enable simple backups to bypass compression, archiving and exporting.
+  *     optional simple backup method to bypass compression, archiving and exporting.
   * useful if simple dumps are needed with performance throttling and erorr handling.
 * Exporting
   * automatically transfer latest backup to remote FTP or using SCP.
