@@ -128,7 +128,9 @@ function perform_backup {
       log "mongosback terminating early" 
       error_trap
     fi
-    $PERFORMANCE_THROTTLING tar --remove-files -cf $COMPRESSED_NAME dump/
+    if [ $SIMPLE_BACKUP = "0" ] ; then
+      $PERFORMANCE_THROTTLING tar --remove-files -cf $COMPRESSED_NAME dump/
+    fi
   else
     log "starting mongodump (this will take a while)...." 
     $PERFORMANCE_THROTTLING $MONGO_DUMP -h $MONGO_HOST_PORT -d $DO_BACKUP -o $BACKUP_PATH $MONGO_DUMP_OPTIONS &> /dev/null ; RETURN=$?
@@ -137,7 +139,9 @@ function perform_backup {
       log "mongosback terminating early" 
       error_trap
     fi
-    $PERFORMANCE_THROTTLING tar --remove-files -cf $COMPRESSED_NAME $DO_BACKUP
+    if [ $SIMPLE_BACKUP = "0" ] ; then
+      $PERFORMANCE_THROTTLING tar --remove-files -cf $COMPRESSED_NAME $DO_BACKUP
+    fi
   fi
 
   log "mongodump successful, beginning post-dump operations" 
@@ -204,7 +208,7 @@ EOF
 function scp_export {
   if [ $SCP_EXPORT == "1" ] ; then
     log "performing SCP export functions..."
-    scp $COMPRESSED_NAME $SCP_USER@$SCP_HOST:$SCP_PATH
+    scp -P $SCP_PORT $COMPRESSED_NAME $SCP_USER@$SCP_HOST:$SCP_PATH
   fi
 }
 
@@ -213,13 +217,18 @@ function send_mail {
   if [ $EMAIL_REPORT -eq "1" ] ; then
     log "sending email notifications..."
     MB_HOST=`echo $MONGO_HOST_PORT | awk -F":" '{print $1}'`
-    MB_ALL=`find $COMPRESS_STORE -name "*dump.tar*" -type f -exec du -hs {} \;`
-      MB_SIZE=`du -hs $COMPRESSED_NAME | awk '{print $1}'`
-      echo "backup host:  $MB_HOST" >> mail.tmp
-      echo "backup size:  $MB_SIZE" >> mail.tmp
-      echo "backup time: $TIME_DIFF minutes" >> mail.tmp
-      echo -e "disk usage:  (size : usage : avail : percent : parent) \n $(df -h $BACKUP_PATH | tail -n 1)" >> mail.tmp
-      echo -e "Backups on hand\n$MB_ALL" >> mail.tmp
+    echo "backup time: $TIME_DIFF minutes" >> mail.tmp
+    echo -e "disk usage:  (size : usage : avail : percent : parent) \n $(df -h $BACKUP_PATH | tail -n 1)" >> mail.tmp
+
+	if [ $SIMPLE_BACKUP -eq "0" ] ; then
+      MB_ALL=`find $COMPRESS_STORE -name "*dump.tar*" -type f -exec du -hs {} \;`
+        MB_SIZE=`du -hs $COMPRESSED_NAME | awk '{print $1}'`
+        echo "backup host:  $MB_HOST" >> mail.tmp
+        echo "backup size:  $MB_SIZE" >> mail.tmp
+        echo -e "Backups on hand\n$MB_ALL" >> mail.tmp
+     else
+     	MB_SIZE=`du -hs dump/ | awk '{print $1}'`
+	 fi
     EMAIL_SUBJECT="mongosback - success - host:  $MB_HOST : size:  $MB_SIZE : runtime:  $TIME_DIFF minutes"
       /bin/mail -s "$EMAIL_SUBJECT" "$EMAIL_ADDRESS" < mail.tmp
         if [ $? -eq "0" ] ; then
@@ -229,41 +238,6 @@ function send_mail {
   fi
 }
 
-function set_cron {
-  echo "soon"
-  exit 0
-}
-
-usage() {
-cat << EOF
-  usage: $0 options
-
-  mongosback.sh
-
-  RUN OPTIONS:
-  -h shows this.
-  -s runs cron setting function.
-EOF
-exit 1
-}
-
-while getopts "hs" opts
-do
-  case $opts in
-    h)
-        usage
-        exit 1
-        ;;
-    s)
-        set_cron
-        ;;
-    ?)
-        usage
-        exit
-        ;;
-  esac
-done
-
 # Create some separation in the log for easier reading.
 echo "--------------------------------------------------------------------------------" >> $LOG_FILE
 PID_FILE="/var/run/mongosback.pid"
@@ -271,12 +245,20 @@ PID_FILE="/var/run/mongosback.pid"
 trap 'error_trap $LINENO $FUNCNAME $?' ERR SIGHUP SIGINT SIGTERM
 echo "$$" > $PID_FILE
   START_TIME=$(date +%s)
-  prepare_job
-  perform_backup
-  do_compress
-  do_archive
-  ftp_export
-  scp_export
+  if [ $SIMPLE_BACKUP = "0" ] ; then
+    prepare_job
+    perform_backup
+    do_compress
+    do_archive
+    ftp_export
+    scp_export
+  else
+  	prepare_job
+  	perform_backup
+  	ftp_export
+  	scp_export
+  fi
+
   END_TIME=$(date +%s)
   TIME_DIFF=$(( $END_TIME - $START_TIME ))
   TIME_DIFF=`echo $(($TIME_DIFF / 60 ))`
