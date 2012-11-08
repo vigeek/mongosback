@@ -229,6 +229,41 @@ function send_mail {
   fi
 }
 
+function set_cron {
+  echo "soon"
+  exit 0
+}
+
+usage() {
+cat << EOF
+  usage: $0 options
+
+  mongosback.sh
+
+  RUN OPTIONS:
+  -h shows this.
+  -s runs cron setting function.
+EOF
+exit 1
+}
+
+while getopts "hs" opts
+do
+  case $opts in
+    h)
+        usage
+        exit 1
+        ;;
+    s)
+        set_cron
+        ;;
+    ?)
+        usage
+        exit
+        ;;
+  esac
+done
+
 # Create some separation in the log for easier reading.
 echo "--------------------------------------------------------------------------------" >> $LOG_FILE
 PID_FILE="/var/run/mongosback.pid"
