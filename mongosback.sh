@@ -115,7 +115,7 @@ function prepare_job {
   COMPRESSED_NAME="$(echo $DO_BACKUP)_$(date +%m_%d_%Y)_dump.tar"
 }
 
-function raw_backup {
+function rawd_backup {
   log "performing raw backup"
 }
 
@@ -241,6 +241,16 @@ function send_mail {
   fi
 }
 
+function finish_up {
+  END_TIME=$(date +%s)
+  TIME_DIFF=$(( $END_TIME - $START_TIME ))
+  TIME_DIFF=`echo $(($TIME_DIFF / 60 ))`
+  log "finished mongodump in $TIME_DIFF minutes..." 
+  send_mail
+  rm -f $PID_FILE
+exit 0
+}
+
 # Create some separation in the log for easier reading.
 echo "--------------------------------------------------------------------------------" >> $LOG_FILE
 PID_FILE="/var/run/mongosback.pid"
@@ -249,6 +259,15 @@ trap 'error_trap $LINENO $FUNCNAME $? $BASH_COMMAND' ERR SIGHUP SIGINT SIGTERM
 
 echo "$$" > $PID_FILE
   START_TIME=$(date +%s)
+  if [ $LVM_BACKUP = "1" ] ; then
+    prepare_job
+  fi
+
+  if [ $RAW_BACKUP = "1" ] ; then
+    prepare_job
+    rawd_backup
+  fi
+  
   if [ $SIMPLE_BACKUP = "0" ] ; then
     prepare_job
     perform_backup
@@ -256,19 +275,13 @@ echo "$$" > $PID_FILE
     do_archive
     ftp_export
     scp_export
+    finish_up
   else
   	prepare_job
   	perform_backup
   	ftp_export
   	scp_export
+    finish_up
   fi
 
-  END_TIME=$(date +%s)
-  TIME_DIFF=$(( $END_TIME - $START_TIME ))
-  TIME_DIFF=`echo $(($TIME_DIFF / 60 ))`
-  log "finished mongodump in $TIME_DIFF minutes..." 
 
-  send_mail
-rm -f $PID_FILE
-
-exit 0
