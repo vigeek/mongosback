@@ -259,7 +259,7 @@ trap 'error_trap $LINENO $FUNCNAME $? $BASH_COMMAND' ERR SIGHUP SIGINT SIGTERM
 
 echo "$$" > $PID_FILE
   START_TIME=$(date +%s)
-  if [ $LVM_BACKUP = "1" ] ; then
+  if [ $LVM_SNAPSHOTS = "1" ] ; then
     prepare_job
   fi
 
