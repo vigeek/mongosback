@@ -233,7 +233,8 @@ function send_mail {
      	MB_SIZE=`du -hs dump/ | awk '{print $1}'`
 	 fi
     EMAIL_SUBJECT="mongosback - success - host:  $MB_HOST : size:  $MB_SIZE : runtime:  $TIME_DIFF minutes"
-      /bin/mail -s "$EMAIL_SUBJECT" "$EMAIL_ADDRESS" < mail.tmp
+      MAILER=$(which mail)
+      $MAILER -s "$EMAIL_SUBJECT" "$EMAIL_ADDRESS" < mail.tmp
         if [ $? -eq "0" ] ; then
           log "email notification successfully sent..."
         fi
