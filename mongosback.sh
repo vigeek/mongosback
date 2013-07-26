@@ -6,8 +6,17 @@
 
 set -o errtrace
 
+while getopts f: OPT
+do
+	case $OPT in
+		f) CONFIG="$OPTARG"
+	esac
+done
+
 if [ -f "mongosback.conf" ] ; then
   . ./mongosback.conf
+elif [ ! -z "$CONFIG" ]; then
+  . $CONFIG
 else
   logger -s "mongosback unable to read the configuration file, exiting prematurely"
   exit 1
