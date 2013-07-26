@@ -6,8 +6,17 @@
 
 set -o errtrace
 
+while getopts f: OPT
+do
+	case $OPT in
+		f) CONFIG="$OPTARG"
+	esac
+done
+
 if [ -f "mongosback.conf" ] ; then
   . ./mongosback.conf
+elif [ ! -z "$CONFIG" ]; then
+  . $CONFIG
 else
   logger -s "mongosback unable to read the configuration file, exiting prematurely"
   exit 1
@@ -233,7 +242,8 @@ function send_mail {
      	MB_SIZE=`du -hs dump/ | awk '{print $1}'`
 	 fi
     EMAIL_SUBJECT="mongosback - success - host:  $MB_HOST : size:  $MB_SIZE : runtime:  $TIME_DIFF minutes"
-      /bin/mail -s "$EMAIL_SUBJECT" "$EMAIL_ADDRESS" < mail.tmp
+      MAILER=$(which mail)
+      $MAILER -s "$EMAIL_SUBJECT" "$EMAIL_ADDRESS" < mail.tmp
         if [ $? -eq "0" ] ; then
           log "email notification successfully sent..."
         fi
