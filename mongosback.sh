@@ -13,10 +13,10 @@ do
 	esac
 done
 
-if [ -f "mongosback.conf" ] ; then
-  . ./mongosback.conf
-elif [ ! -z "$CONFIG" ]; then
+if [ ! -z "$CONFIG" ] ; then
   . $CONFIG
+elif [ -f "mongosback.conf" ]; then
+  . ./mongosback.conf
 else
   logger -s "mongosback unable to read the configuration file, exiting prematurely"
   exit 1
@@ -121,7 +121,7 @@ function prepare_job {
   if [ -z "$DO_BACKUP" ] ; then 
     DO_BACKUP="full" 
   fi
-  COMPRESSED_NAME="$(echo $DO_BACKUP)_$(date +%m_%d_%Y)_dump.tar"
+  COMPRESSED_NAME="$(echo $DO_BACKUP)_$(date +%m_%d_%Y_%H-%M-%S)_dump.tar"
 }
 
 function rawd_backup {
@@ -233,7 +233,7 @@ function send_mail {
     echo -e "disk usage:  (size : usage : avail : percent : parent) \n $(df -h $BACKUP_PATH | tail -n 1)" >> mail.tmp
 
 	if [ $SIMPLE_BACKUP -eq "0" ] ; then
-      MB_ALL=`find $COMPRESS_STORE -name "*dump.tar*" -type f -exec du -hs {} \;`
+      MB_ALL=`find $COMPRESS_STORE -name "*dump.tar*" -type f -exec du -hs {} \; | sort -n`
         MB_SIZE=`du -hs $COMPRESSED_NAME | awk '{print $1}'`
         echo "backup host:  $MB_HOST" >> mail.tmp
         echo "backup size:  $MB_SIZE" >> mail.tmp
