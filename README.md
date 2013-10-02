@@ -4,7 +4,9 @@
 #### Installation
 Clone or download as zip from github, extract to directory.  Set the main script as executable (chmod u+x mongosback.sh).  Edit mongosback.conf with desired settings and execute from cron.
 
-Upon running, you may provide the path to mongosback.conf by executing with "-f".  e.g ./mongosback.sh -f /etc/mongosback.conf
+Upon running, you may provide the path to mongosback.conf by executing with "-f".  Example:
+
+./mongosback.sh -f /etc/mongosback.conf
 
 ###### Compatability
 Tested:  Debian, CentOS, RHEL
