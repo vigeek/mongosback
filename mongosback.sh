@@ -40,10 +40,10 @@ function error_trap {
   exit 1
 }
 
-if [ -f "/var/run/mongosback.pid" ] ; then
+if [ -f $PID_FILE ] ; then
   ERR_RETURN="pid existance : $LINENO"
-  logger "mongosback - exiting prematurely, pid file exists @ /var/run/mongosback.pid"
-  echo -e "mongosback - exiting prematurely, pid file exists @ /var/run/mongosback.pid" | tee -a $LOG_FILE
+  logger "mongosback - exiting prematurely, pid file exists @ $PID_FILE"
+  echo -e "mongosback - exiting prematurely, pid file exists @ $PID_FILE" | tee -a $LOG_FILE
   error_trap
 fi  
 
@@ -266,7 +266,6 @@ exit 0
 
 # Create some separation in the log for easier reading.
 echo "--------------------------------------------------------------------------------" >> $LOG_FILE
-PID_FILE="/var/run/mongosback.pid"
 # Define error traps
 trap 'error_trap $LINENO $FUNCNAME $? $BASH_COMMAND' ERR SIGHUP SIGINT SIGTERM
 
