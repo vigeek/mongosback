@@ -44,7 +44,12 @@ Tested:  Debian, CentOS, RHEL
 * General
     * creates pid file to prevent multiple startups.
     * traps errors caught, logs and optionally e-mails.
+    * can be run as non root user
 
+###### Note on mongoDB rights if using auth
+User roles need to contain **userAdmin** because mongodump backup db.system.users.
+For now, there is no option to tell mongodump not backuping this users collection.
+Update:  For MongoDB 2.6, user needs to have the backup and hostManager (for clusters) roles 
 
 ###### license
 
@@ -53,3 +58,4 @@ GPL v3
 ###### contact
 
 Russ Thompson (russ a@t linux.com).  actively maintained, please submit issues or suggestions.
+
