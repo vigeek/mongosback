@@ -8,7 +8,7 @@ Upon running, you may provide the path to mongosback.conf by executing with "-f"
 
 ./mongosback.sh -f /etc/mongosback.conf
 
-###### Compatability
+###### Compatibility
 Tested:  Debian, CentOS, RHEL
 
 ###### Amazon S3
