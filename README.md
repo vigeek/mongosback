@@ -11,7 +11,7 @@ Upon running, you may provide the path to mongosback.conf by executing with "-f"
 ###### Compatability
 Tested:  Debian, CentOS, RHEL
 
-###### Amzons S3
+###### Amazon S3
 To use S3 backup, you'll need to install and configure the `s3cmd` tool:
 - `sudo apt-get install s3cmd`
 - `s3cmd --configure`
