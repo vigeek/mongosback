@@ -164,16 +164,16 @@ function perform_backup {
 function lock_writes {
   
   if [ $LOCK_WRITES -eq "1" ] ; then
-    if [ -z "$MONGO_USER" || -z "$MONGO_PASS" ] ; then 
-        LOCKER=`mongo --host $MONGO_HOST_PORT --eval "printjson(db.fsyncLock())" | grep "ok" | cut -d":" -f2`
+    if [ -z "$MONGO_USER" ] || [ -z "$MONGO_PASS" ] ; then
+        LOCKER=`mongo admin --host $MONGO_HOST_PORT --eval "printjson(db.fsyncLock())" | grep "ok" | cut -d":" -f2`
         if [ "$LOCKER" -ne "1" ] ; then
           log "error encountered during lock function"
         fi
     else
       if [ -n "$MONGO_USER" ] ; then OPT_ARG="-u $MONGO_USER" ; fi
       if [ -n "$MONGO_PASS" ] ; then OPT_ARG="$(echo $OPT_ARG) -p $MONGO_PASS" ; fi
-        echo "db.fsyncLock()" | mongo $MONGO_HOST_PORT $OPT_ARG
-        LOCKER=`mongo --host $MONGO_HOST_PORT $OPT_ARG --eval "printjson(db.fsyncLock())" | grep "ok" | cut -d":" -f2`
+        echo "db.fsyncLock()" | mongo admin --host $MONGO_HOST_PORT $OPT_ARG
+        LOCKER=`mongo admin --host $MONGO_HOST_PORT $OPT_ARG --eval "printjson(db.fsyncLock())" | grep "ok" | cut -d":" -f2`
         if [ "$LOCKER" -ne "1" ] ; then
           log "error encountered during lock function"
         fi
@@ -184,13 +184,13 @@ function lock_writes {
 function unlock_writes {
 
   if [ $LOCK_WRITES -eq "1" ] ; then
-    if [ -z "$MONGO_USER" || -z "$MONGO_PASS" ] ; then 
-        UNLOCKER=`mongo --host $MONGO_HOST_PORT --eval "printjson(db.fsyncUnlock())"`
+    if [ -z "$MONGO_USER" ] || [ -z "$MONGO_PASS" ] ; then
+        UNLOCKER=`mongo admin --host $MONGO_HOST_PORT --eval "printjson(db.fsyncUnlock())"`
     else
       if [ -n "$MONGO_USER" ] ; then OPT_ARG="-u $MONGO_USER" ; fi
       if [ -n "$MONGO_PASS" ] ; then OPT_ARG="$(echo $OPT_ARG) -p $MONGO_PASS" ; fi
-        echo "db.fsyncLock()" | mongo $MONGO_HOST_PORT $OPT_ARG
-        UNLOCKER=`mongo --host $MONGO_HOST_PORT $OPT_ARG --eval "printjson(db.fsyncUnlock())"`
+        echo "db.fsyncLock()" | mongo --host $MONGO_HOST_PORT $OPT_ARG
+        UNLOCKER=`mongo admin --host $MONGO_HOST_PORT $OPT_ARG --eval "printjson(db.fsyncUnlock())"`
     fi
   fi
 }
@@ -301,5 +301,4 @@ echo "$$" > $PID_FILE
   	scp_export
     finish_up
   fi
-
 
