@@ -196,7 +196,12 @@ function unlock_writes {
 }
 
 function s3_export {
-  log "performing S3 export function..."
+  if [ $S3_EXPORT == "1" ] ; then
+    log "performing S3 export functions..."
+    $S3_BUCKET_NAME
+    $S3_BUCKET_PATH
+    s3cmd put $COMPRESSED_NAME s3://$S3_BUCKET_NAME/$S3_BUCKET_PATH/$COMPRESSED_NAME
+  fi
 }
 
 function ftp_export {
@@ -286,6 +291,7 @@ echo "$$" > $PID_FILE
     do_compress
     do_archive
     ftp_export
+    s3_export
     scp_export
     finish_up
   else
