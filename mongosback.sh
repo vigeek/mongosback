@@ -22,6 +22,12 @@ else
   exit 1
 fi
 
+# Check that IOnice is available, echo to stdout if not.
+IO_NICE=`which ionice`
+if [ -z "$IO_NICE" ] ; then
+  echo "WARNING:  ionice binary not found, ensure performance throttling set to normal"
+fi
+
 function log {
   echo -e "$(date +%D" "%T) $1" >> $LOG_FILE
   if [ $SYSLOG -eq 1 ] ; then
