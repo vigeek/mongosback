@@ -204,7 +204,7 @@ function unlock_writes {
 function s3_export {
   if [ $S3_EXPORT == "1" ] ; then
     log "performing S3 export to bucket: $S3_BUCKET_NAME"
-    s3cmd put $COMPRESSED_NAME s3://$S3_BUCKET_PATH/$S3_BUCKET_NAME/$COMPRESSED_NAME
+    s3cmd put $COMPRESSED_NAME s3://$S3_BUCKET_NAME/$S3_BUCKET_PATH/$COMPRESSED_NAME
   fi
 }
 
