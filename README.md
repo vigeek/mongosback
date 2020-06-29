@@ -1,4 +1,4 @@
-## mongosback 0.91
+## mongosback 0.92
 **mongosback** is a mongodb backup script created to be easy to use yet flexible, used in production at Wildbit.com
 
 #### Installation
